@@ -25,59 +25,69 @@ their expected location in the 'default_dir').
 
 The directories/paths needed are -
 
-    * '--atomic_data_dir' (default: "[default_dir]/atomic_data", automatically created if nonexistant): directory to output 
-      atomically-updated data shared across multiple threads/processes/nodes (EG: normalized assembly tokens). It is 
-      expected that, if data is meant to be shared, then all processes that are running concurrently have access to this
-      same folder within the same filesystem. See the 'OUTPUT_DATA' section for more info on what will appear here.
+    * '--atomic_data_dir' (default: "[default_dir]/atomic_data", automatically created): 
+      directory to output atomically-updated data shared across multiple threads/processes/nodes
+      (EG: normalized assembly tokens). It is expected that, if data is meant to be shared, then
+      all processes that are running concurrently have access to this same folder within the 
+      same filesystem. See the 'OUTPUT_DATA' section for more info on what will appear here.
 
-    * '--containers_dir' (default: "[default_dir]/containers", should exist before execution if using): directory 
-      containing all file-based containers that are needed to execute compilations and analysis. This is needed for
-      container programs like singularity, but would not be needed if using something like docker. See the 'Containers'
-      subsection for info on what containers should reside here and how they should be built
+    * '--containers_dir' (default: "[default_dir]/containers", should already exist): directory 
+      containing all file-based containers that are needed to execute compilations and analysis. 
+      This is needed for container programs like singularity, but would not be needed if using 
+      something like docker. See the 'Containers' subsection for info on what containers should 
+      reside here and how they should be built
 
-    * '--logs_dir' (default: "[default_dir]/logs", automatically created if nonexistant): directory for output logs
+    * '--logs_dir' (default: "[default_dir]/logs", automatically created): directory for logs
 
-    * '--output_dir' (default: "[default_dir]/output", automatically created if nonexistant): directory for output
-      data. See 'OUTPUT_DATA' section for more info on what outputs are generated
+    * '--output_dir' (default: "[default_dir]/output", automatically created): directory for 
+      output data. See 'OUTPUT_DATA' section for more info on what outputs are generated
     
-    * '--input_path' (default: "[default_dir]/input", should always be passed, should always exist before execution): 
-      file/directory containing the raw data that should be CAP-ed. It must exist before execution. Defaults to assuming
-      the path at "[default_dir]/input" is a file/directory containing data to CAP 
+    * '--input_path' (default: "[default_dir]/input", should be passed and already exist): 
+      file/directory containing the raw data that should be CAP-ed. It must exist before 
+      execution. Defaults to assuming the path at "[default_dir]/input" is a file/directory 
+      containing data to CAP 
     
-    * '--temp_dir' (default: "[default_dir]/temp", automatically created if nonexistant): directory within which
-      subdirectories will be created to house temporary scratch files created during the CAP process. While I make every
-      effort to ensure all temporary files that are created are eventually deleted, this is not 100% ensured, especially
-      if execution is interrupted due to exceptions, signals, etc. It is recommended to override the default directory
-      for this temp_dir and set it to a node's temporary scratch directory when using HPC (these are often emptied
-      between jobs on HPC)
+    * '--temp_dir' (default: "[default_dir]/temp", automatically created if nonexistent): 
+      directory within which subdirectories will be created to house temporary scratch files 
+      created during the CAP process. While I make every effort to ensure all temporary files 
+      that are created are eventually deleted, this is not 100% ensured, especially if execution
+      is interrupted due to exceptions, signals, etc. It is recommended to override the default
+      directory for this temp_dir and set it to a node's temporary scratch directory when using
+      HPC (these are often emptied between jobs on HPC)
     
-    * '--partitioned_info_path' (default: "[input_path]/[exec_uid].parquet", should exist before execution if using): path
-      to a file containing the info for a 'partitioned' data CAP process. Only used if performing the 'partitioned' CAP
-      process. Defaults to a file within the input_path directory whose name is the execution uid of the current CAP process.
-      See the 'Input Data' subsection for more info on what columns/data should exist within this file
+    * '--partitioned_info_path' (default: "[input_path]/[exec_uid].parquet", should exist before 
+      execution if using): path to a file containing the info for a 'partitioned' data CAP 
+      process. Only used if performing the 'partitioned' CAP process. Defaults to a file within
+      the input_path directory whose name is the execution uid of the current CAP process. See 
+      the 'Input Data' subsection for more info.
     
-    * '--partitioned_dir' (default: "[input_path]/partitioned", should exist before execution if using): path to a folder
-      containing all of the partitioned data for a 'partitioned' data CAP process. Only used if performing the 'partitioned'
-      CAP process. See the 'Input Data' subsection for more info on how partitioned files should be structured
+    * '--partitioned_dir' (default: "[input_path]/partitioned", should exist before execution 
+      if using): path to a folder containing all of the partitioned data for a 'partitioned' 
+      data CAP process. Only used if performing the 'partitioned' CAP process. See the 
+      'Input Data' subsection for more info on how partitioned files should be structured
 
-    * '--container_info_path' (default: "[cap]/container_info.yaml", must exist before execution): path to a YAML file 
-      containing information and configurations about containers used in the CAP process. If not passed, then this will 
-      use the default "container_info.yaml" file shipped along with this code expected to be right next to the 'CAP.py'
-      file. See the 'Configuration Files' and 'Containers' subsections for info about using the default containers shipped
-      with this code, and the 'Extend Me' section for how this file is structured and how to extend it to accomodate new containers.
+    * '--container_info_path' (default: "[cap]/container_info.yaml", should already exist): path 
+      to a YAML file containing information and configurations about containers used in the CAP 
+      process. If not passed, then this will use the default "container_info.yaml" file shipped 
+      along with this code expected to be right next to the 'CAP.py' file. See the 
+      'Configuration Files' and 'Containers' subsections for info about using the default 
+      containers shipped with this code, and the 'Extend Me' section for how this file is 
+      structured and how to extend it to accomodate new containers.
     
-    * '--execution_info_path' (default: "[cap]/execution_info.py", must exist before execution): path to a python file
-      containing information about this CAP execution such as the execution_uid, the data to keep, the normalizers/analyzers
-      to use, etc. This file will be imported, then all of the needed global constants will be imported. See the
+    * '--execution_info_path' (default: "[cap]/execution_info.py", must exist before execution):
+      path to a python file containing information about this CAP execution such as the 
+      execution_uid, the data to keep, the normalizers/analyzers to use, etc. This file will be 
+      imported, then all of the needed global constants will be imported. See the 
       'Configuration Files' section for more info on what global constants should be present
 
 Within any of these paths, you may insert various strings that will be replaced when resolving the final paths:
 
-    * "[default_dir]": replaces with the full path to the default directory, without a '/' at the end. Cannot exist within
-      the '--default_dir' directory path
-    * "[input_path]": replaces with the full path to the input directory, without a '/' at the end. Cannot exist within
-      the '--input_path' or '--default_dir' path
-    * "[main]" or "[cap]": replaces with the full path to the directory containing the "CAP.py" file, without a '/' at the end
+    * "[default_dir]": replaces with the full path to the default directory, without a '/' at 
+      the end. Cannot exist within the '--default_dir' directory path
+    * "[input_path]": replaces with the full path to the input directory, without a '/' at the 
+      end. Cannot exist within the '--input_path' or '--default_dir' path
+    * "[main]" or "[cap]": replaces with the full path to the directory containing the "CAP.py" 
+      file, without a '/' at the end
     * "[exec_uid]": replaces with the execution uid being used for this CAP execution
 
 NOTE: if you do not pass a '--default_dir' value, then it is expected that every one of these file paths which depend on
@@ -87,73 +97,88 @@ that default path are also passed, even if they are not eventually used.
 
 There are a couple of configurations needed before running:
 
-    * container_info - YAML file containing information on containers being used including those for compilers and
-      analyzers. By default, CAP will use the "container_info.yaml" file shipped with this code, which should reside
-      right next to 'CAP.py'. It should contain everything needed for GCC and JavaC compilers and Rose analyzer.
-      Information on how this file is structure and how new containers can be added can be found in the 'Extend Me' section
+    * container_info - YAML file containing information on containers being used including those
+      for compilers and analyzers. By default, CAP will use the "container_info.yaml" file 
+      shipped with this code, which should reside right next to 'CAP.py'. It should contain 
+      everything needed for GCC and JavaC compilers and Rose analyzer. Information on how this 
+      file is structure and how new containers can be added can be found in the 'Extend Me'
+      section
     
-    * execution_info - Information about the current CAP execution. By default, this resides within the 'execution_info.py'
-      file located next to the 'CAP.py' file. It exists as a python file as it has been useful to make use of python
-      code to generate some of this information (EG: enumerating many compile_methods in for loops, getting IDE hints,
+    * execution_info - Information about the current CAP execution. By default, this resides 
+      within the 'execution_info.py' file located next to the 'CAP.py' file. It exists as a 
+      python file as it has been useful to make use of python code to generate some of this 
+      information (EG: enumerating many compile_methods in for loops, getting IDE hints,
       etc.). I may want to find a better way of creating this configuration in the future...
 
       The execution info file must contain the global variables:
 
-        - EXECUTION_UID (str): a unique string identifier of the current execution. This should be the same between multiple
-          threads/nodes working on this current execution. However, multiple executions could be run on the same folders
-          or data at the same time without clobbering each other so long as you change this EXECUTION_UID. This value
-          will be used in the naming of a lot of output files/logs and whatnot
+        - EXECUTION_UID (str): a unique string identifier of the current execution. This should 
+          be the same between multiple threads/nodes working on this current execution. However,
+          multiple executions could be run on the same folders or data at the same time without 
+          clobbering each other so long as you change this EXECUTION_UID. This value will be 
+          used in the naming of a lot of output files/logs and whatnot
       
-      It may optionally contain the following variables. If not present, they will be set to their defaults:
+      It may optionally contain the following variables. If not present, they will be set to 
+      their defaults:
         
-        - POSTPROCESSING (Optional[Union[str, List[str]]], default=[]): string or list of strings for the postprocessings 
-          to apply to analyzer outputs, or None to not apply any. Available strings:
+        - POSTPROCESSING (Optional[Union[str, List[str]]], default=[]): string or list of 
+          strings for the postprocessings to apply to analyzer outputs, or None to not apply
+          any. Available strings:
 
-          * 'cfg': build a CFG() object, one for each of the normalizers in exec_info['normalizers']
-          * 'memcfg': build a MemCFG() object, one for each of the normalizers in exec_info['normalizers']
-          * 'stats': build a CFG() object and get the graph statistics with cfg.get_compressed_stats(), one for
-          each of the normalizers in exec_info['normalizers']
+          * 'cfg': build a CFG() object, one for each of the normalizers in 
+            exec_info['normalizers']
+          * 'memcfg': build a MemCFG() object, one for each of the normalizers in 
+            exec_info['normalizers']
+          * 'stats': build a CFG() object and get the graph statistics with 
+            cfg.get_compressed_stats(), one for each of the normalizers in 
+            exec_info['normalizers']
       
           NOTE: these will be stored as pickled bytes() objects
 
-        - DROP_COLUMNS (Optional[Union[str, List[str]]], default=[]): by default, all of the data generated is kept. This
-          if not None, can be a string or list of strings of the column or group of columns to drop. You may also
-          pass any columns that would appear in the metadata, and those will be dropped. Metadata columns to 
-          drop can be passed either as their original name, or with the prefix 'meta_' as they would appear in
-          the output data. Any columns that do not correspond to data being kept will raise an error, unless they 
-          start with the prefix 'meta_', in which case it is assume that that column is a possible metadata column 
-          which may or may not exist. Available non-metadata columns to drop: 
+        - DROP_COLUMNS (Optional[Union[str, List[str]]], default=[]): by default, all of the 
+          data generated is kept. This if not None, can be a string or list of strings of the 
+          column or group of columns to drop. You may also pass any columns that would appear 
+          in the metadata, and those will be dropped. Metadata columns to drop can be passed 
+          either as their original name, or with the prefix 'meta_' as they would appear in the 
+          output data. Any columns that do not correspond to data being kept will raise an 
+          error, unless they start with the prefix 'meta_', in which case it is assume that that
+          column is a possible metadata column which may or may not exist. Available 
+          non-metadata columns to drop: 
                   
-          'analyzer', 'binaries', 'analyzer_output', 'metadata', 'error', 'compile_stdout', 'compile_stderr', 
-          'analyzer_stdout', 'analyzer_stderr', 'compile_time', 'analysis_time', 'language_family', 'compiler_family',
-          'compiler', 'compiler_version', 'architecture', 'flags'
+          'analyzer', 'binaries', 'analyzer_output', 'metadata', 'error', 'compile_stdout', 
+          'compile_stderr', 'analyzer_stdout', 'analyzer_stderr', 'compile_time', 
+          'analysis_time', 'language_family', 'compiler_family', 'compiler', 'compiler_version',
+          'architecture', 'flags'
 
           There are also a couple of special strings that will drop groups of columns including:
 
             * 'metadata': drop any metadata that was passed in metadata dictionaries
-            * 'compile_info': drop all of the compilation info
-            * 'timings': drop all of the timing information ('compile_time', 'analysis_time')
-            * 'stdio': drop all of the stdio information ('compile_stderr', 'analyzer_stdout', etc.)
-            * 'stdout': drop all of the stdout information ('compile_stdout', 'analyzer_stdout')
-            * 'stderr': drop all of the stderr information ('compile_stderr', 'analyzer_stderr')
+            * 'compile_info': drop all the compilation info
+            * 'timings': drop all the timing information ('compile_time', 'analysis_time')
+            * 'stdio': drop all the stdio information ('compile_stderr', 'analyzer_stdout', etc.)
+            * 'stdout': drop all the stdout information ('compile_stdout', 'analyzer_stdout')
+            * 'stderr': drop all the stderr information ('compile_stderr', 'analyzer_stderr')
 
           See the README.md for what all of these columns are.
         
-        - NORMALIZERS (Optional[Union[str, Normalizer, Iterable[Union[None, str, Normalizer]]]], default=[]): normalizers
-          to use when building postprocessing CFG's. Will build those CFG's once for each of the normalizers here. Can be:
+        - NORMALIZERS (Optional[Union[str, Normalizer, Iterable[Union[None, str, Normalizer]]]], 
+          default=[]): normalizers to use when building postprocessing CFG's. Will build those 
+          CFG's once for each of the normalizers here. Can be:
 
-          * None: will not normalize at all (use raw input) for CFG's, will use 'unnormalized' normalization
-            (default BaseNormalizer()) for MemCFG's
-          * str: string name of a normalizer to use. See BinCFG documentation for list of available normalizer strings
+          * None: will not normalize at all (use raw input) for CFG's, will use 'unnormalized' 
+            normalization (default BaseNormalizer()) for MemCFG's
+          * str: string name of a normalizer to use. See BinCFG documentation for list of 
+            available normalizer strings
           * Normalizer: Normalizer-like object to use. See BinCFG documentation
           * Iterable of any of the above: will do one of each normalization for each datapoint
         
-        - ANALYZERS (Optional[Union[str, List[str]]], default=[]): string or list of strings for the analyzers to use. 
-          Should exist in the container_info YAML file. Can be empty if you wish to not analyze files, but only compile
+        - ANALYZERS (Optional[Union[str, List[str]]], default=[]): string or list of strings for
+          the analyzers to use. Should exist in the container_info YAML file. Can be empty if 
+          you wish to not analyze files, but only compile
         
-        - COMPILE_METHODS (Optional[List[Dict[str, Any]]], default=[]): list of dictionaries of compile methods to apply. 
-          See the 'Compile Methods' subsection for more info. Can be empty if using CAP task 'binaries' to analyze 
-          pre-compiled binaries
+        - COMPILE_METHODS (Optional[List[Dict[str, Any]]], default=[]): list of dictionaries of 
+          compile methods to apply. See the 'Compile Methods' subsection for more info. Can be 
+          empty if using CAP task 'binaries' to analyze pre-compiled binaries
 
 ### Containers
 
@@ -177,28 +202,34 @@ detected, see the 'Automatic Detection' subsection for more info
 Assumes your input is partitioned into multiple parquet files based on an integer key 'id'. Makes the following assumptions:
 
   - The '--task' passed was 'partitioned' or automatically detected to be 'partitioned'
-  - There is a parquet file located at '--partitioned_info_path' (defaults to "[input_path]/[exec_uid].parquet" if not passed)
-    which contains the metadata about the source code files being CAP-ed for this execution uid. This file should contain
-    the columns "id" and "programming_language" designating a unique integer id per individual source code, and a string
-    programming language identifier respectively. The "id" is the key that will be used to look up the source code
-    inside the 'partitioned' folder. This file may contain other columns as well which will be added to each CAP-ed
-    file as metadata. All other columns will be considered metadata
-  - There is a folder located at '--paritioned_dir' (defaults to "[input_path]/partitioned" if not passed) which contains
-    one or more parquet files. These parquet files will be partitioned by the integer "id" key such that each file
-    contains a contiguous range of id's. Each parquet file should be named "[start]-[end].parquet" where 'start' is the
-    starting id (inclusive) and 'end' is the ending id (exclusive) of the range for that file. Each file should contain
-    the columns "id" for the id key and "source" for the source code. Any other columns will be ignored.
+  - There is a parquet file located at '--partitioned_info_path' (defaults to 
+    "[input_path]/[exec_uid].parquet" if not passed) which contains the metadata about the 
+    source code files being CAP-ed for this execution uid. This file should contain the columns 
+    "id" and "programming_language" designating a unique integer id per individual source code, 
+    and a string programming language identifier respectively. The "id" is the key that will be 
+    used to look up the source code inside the 'partitioned' folder. This file may contain other
+    columns as well which will be added to each CAP-ed file as metadata. All other columns will 
+    be considered metadata
+  - There is a folder located at '--paritioned_dir' (defaults to "[input_path]/partitioned" if
+    not passed) which contains one or more parquet files. These parquet files will be 
+    partitioned by the integer "id" key such that each file contains a contiguous range of id's.
+    Each parquet file should be named "[start]-[end].parquet" where 'start' is the starting id 
+    (inclusive) and 'end' is the ending id (exclusive) of the range for that file. Each file 
+    should contain the columns "id" for the id key and "source" for the source code. Any other 
+    columns will be ignored.
 
 #### Source Code
 
 A single source code file. You can pass either 'source' or 'source-[language]' as the task with '[language]' being the
 programming language used (if not there, then the language will be automatically detected). Makes the following assumptions:
 
-  - The '--task' passed was 'source' or 'source-[language]', or was automatically determined to be one of those. If
-    '[language]' is not present, then the source code programming language will be automatically determined. See
-    'Languages and File Types' for info on source code programming languages
+  - The '--task' passed was 'source' or 'source-[language]', or was automatically determined to
+    be one of those. If '[language]' is not present, then the source code programming language 
+    will be automatically determined. See 'Languages and File Types' for info on source code 
+    programming languages
   - The '--input_path' points to a single source code file
-  - You have passed one or more compile methods. See the 'Compile Methods' subsection for more info
+  - You have passed one or more compile methods. See the 'Compile Methods' subsection for more 
+    info
 
 The 'id' column for this will be the filename.
 
@@ -208,9 +239,10 @@ A single precompiled binary file. You can pass either 'binary' or 'binary-[file_
 being the type of the binary (currently not used, but may be used in the future). If '[file_type]' is not passed,
 it will be automatically detected. Makes the following assumptions:
 
-  - The '--task' passed was 'binary' or 'binary-[file_type]', or was automatically determined to be one of those. If
-    '[file_type]' is not present, then the binary file type will be automatically detected. See 'Languages and File Types'
-    subsections for info on binary file types
+  - The '--task' passed was 'binary' or 'binary-[file_type]', or was automatically determined to 
+    be one of those. If '[file_type]' is not present, then the binary file type will be 
+    automatically detected. See 'Languages and File Types' subsections for info on binary file
+    types
   - The '--input_path' points to a single precompiled binary file
 
 The 'id' column for this will be the filename.
@@ -221,17 +253,21 @@ A single file containing some tabular data (EG: csv, parquet, etc.). You can pas
 as the task with '[file_type]' being the type of tabular data. If '[file_type]' is not passed, it will be automatically 
 detected. Makes the following assumptions:
 
-  - The '--task' passed was 'tabular' or 'tabular-[file_type]', or was automatically determined to be one of those. If
-    '[file_type]' is not present, then the tabular file type will be automatically detected. See 'Languages and File Types'
-    subsections for info on tabular file types
+  - The '--task' passed was 'tabular' or 'tabular-[file_type]', or was automatically determined 
+    to be one of those. If '[file_type]' is not present, then the tabular file type will be 
+    automatically detected. See 'Languages and File Types' subsections for info on tabular file 
+    types
   - The '--input_path' points to a single tabular file
-  - If compiling and analyzing, then this file contains at least the columns 'id', 'source', and 'programming_language'.
-    Source codes will be compiled and analyzed based on their programming language. Any extra columns will be treated as
-    metadata. If the column 'binary' is also present in addition to the 'source' and 'programming_language' columns, then
-    the 'binary' column will be ignored and CAP will default to compiling/analyzing instead of purely analyzing
-  - If only analyzing, then this file contains at least the columns 'id' and 'binary'. No compilation will be performed.
-    Any extra columns will be treated as metadata. If the file also contains the columns 'source' and 'programming_language',
-    then this option will not be chosen, and CAP will default to compiling/analyzing instead of purely analyzing.
+  - If compiling and analyzing, then this file contains at least the columns 'id', 'source', and
+    'programming_language'. Source codes will be compiled and analyzed based on their 
+    programming language. Any extra columns will be treated as metadata. If the column 'binary'
+    is also present in addition to the 'source' and 'programming_language' columns, then the 
+    'binary' column will be ignored and CAP will default to compiling/analyzing instead of 
+    purely analyzing
+  - If only analyzing, then this file contains at least the columns 'id' and 'binary'. No 
+    compilation will be performed. Any extra columns will be treated as metadata. If the file 
+    also contains the columns 'source' and 'programming_language', then this option will not be 
+    chosen, and CAP will default to compiling/analyzing instead of purely analyzing.
 
 #### Project
 
@@ -239,26 +275,30 @@ A folder containing all the files relevant to a single project. You can pass eit
 as the task with '[build_type]' being the type of project being built. If '['build_type]' is not passed, it will be
 automatically detected. Makes the following assumptions:
 
-  - The '--task' passed was 'project' or 'project-[build_type]', or was automatically determined to be one of those. If
-    '[build_type]' is not present, then the project build type will be automatically detected. See 'Languages and File Types'
-    subsections for info on tabular file types
-  - The '--input_path' points to a directory containing all the files required for the project to be built
-  - There exists a special file within this directory that will determine how things are CAP-ed. This file can be:
+  - The '--task' passed was 'project' or 'project-[build_type]', or was automatically determined
+    to be one of those. If '[build_type]' is not present, then the project build type will be 
+    automatically detected. See 'Languages and File Types' subsections for info on tabular file
+    types
+  - The '--input_path' points to a directory containing all the files required for the project 
+    to be built
+  - There exists a special file within this directory that will determine how things are CAP-ed.
+    This file can be:
 
-    1. 'CAP.json': a file special to CAP. It should be in JSON format. The object should be a dictionary, and it can
-       have the following keys/values:
+    1. 'CAP.json': a file special to CAP. It should be in JSON format. The object should be a 
+       dictionary, and it can have the following keys/values:
 
-      * 'only_cap': a string or list of string filenames relative to this directory for the file/files that should be
-        CAP-ed in this project. This is useful for times when there needs to be multiple files in the same directory
-        as the main CAP file while compiling/analyzing (EG: header files when compiling, shared libraries when analyzing
-        with rose, etc.). Files should only be either source code or binary files, not tabular files or project directories.
-        Files should be auto-detectable
+      * 'only_cap': a string or list of string filenames relative to this directory for the 
+        file/files that should be CAP-ed in this project. This is useful for times when there 
+        needs to be multiple files in the same directory as the main CAP file while 
+        compiling/analyzing (EG: header files when compiling, shared libraries when analyzing 
+        with rose, etc.). Files should only be either source code or binary files, not tabular 
+        files or project directories. Files should be auto-detectable
       
-      NOTE: dictionary keys will be searched for in the above order. If there are multiple conflicting keys, the first
-      one found in the order is what will be used
+      NOTE: dictionary keys will be searched for in the above order. If there are multiple
+      conflicting keys, the first one found in the order is what will be used
     
-    NOTE: files will be searched for in the above order. If there are multiple conflicting files, the first one found
-    is what will be used
+    NOTE: files will be searched for in the above order. If there are multiple conflicting files
+    the first one found is what will be used
 
 #### Miscellaneous Folders/Files
 
@@ -266,18 +306,23 @@ A folder containing some number of files or subfolders to CAP. You should pass t
 or if left to 'auto' and another task couldn't be determined, then CAP will default to 'misc' CAP task. The 'misc-recursive'
 task is the same as 'misc', but will recursively check subfolders for more files/projects to CAP. Makes the following assumptions:
 
-  - The '--task' passed was 'misc' or 'misc-recursive', or was automatically determined to be that
-  - The '--input_path' points to a directory containing some number of files/folders. Files will have their types
-    automatically detected, while folders are always assumed to be project folders (See the 'Project' subsection).
+  - The '--task' passed was 'misc' or 'misc-recursive', or was automatically determined to be 
+    that
+  - The '--input_path' points to a directory containing some number of files/folders. Files will
+    have their types automatically detected, while folders are always assumed to be project 
+    folders (See the 'Project' subsection).
 
 The 'id' column for files/projects will be built off of their filepaths relative to the '--input_path' directory like so:
 
-  - source code/binaries: 'file@[filepath]' where '[filepath]' is the path to that file relative to the '--input_path' directory
-  - tabular data: 'tabular@[filepath]-[id]' where '[filepath]' is the path to that file relative to the '--input_path' 
-    directory and '[id]' is the value of the 'id' column in the tabular data
-  - projects: 'project@[folderpath]-[binary_filename]' where '[folderpath]' is the path to that project's folder relative
-    to the '--input_path' directory and '[binary_filename]' is the name of the compiled binary built by that project
-    (NOTE: it's possible for a project to build multiple binaries)
+  - source code/binaries: 'file@[filepath]' where '[filepath]' is the path to that file relative
+    to the '--input_path' directory
+  - tabular data: 'tabular@[filepath]-[id]' where '[filepath]' is the path to that file relative
+    to the '--input_path'  directory and '[id]' is the value of the 'id' column in the tabular 
+    data
+  - projects: 'project@[folderpath]-[binary_filename]' where '[folderpath]' is the path to that 
+    project's folder relative to the '--input_path' directory and '[binary_filename]' is the 
+    name of the compiled binary built by that project (NOTE: it's possible for a project to 
+    build multiple binaries)
   
 #### Note on symlinks:
 
@@ -320,7 +365,8 @@ The following tabular data types can be automatically detected and handled:
 
 The following project build types are available:
 
-  - 'cap': allows for fine-grained control over what happens based on a CAP.json file located in the directory
+  - 'cap': allows for fine-grained control over what happens based on a CAP.json file located 
+    in the directory
   - 'cmake': blah blah blah
 
 ### Precomputed Tokens
@@ -341,56 +387,65 @@ is the id (integer) of the current process's task (in case you are using multith
 the index of the current chunk of data being saved. The parquet file can have the following columns:
 
   - 'id': the id of the datapoint, usually either int or string
-  - 'analyzer': the string name of the analyzer used, or None if no analysis was performed or an error occurred before 
-    or during analysis.
-  - 'language_family': the string language family used when compiling (See 'Programming Languages' subsection for list of
-    currently available language families by default), or None if no compilation was performed or an error occurred
-    before or during compilation
-  - 'compiler_family': the string compiler family used when compiling. These will be the main names of compiler families
-    in the container_info.yaml file. Will be None if no compilation was performed or an error occurred before or during
+  - 'analyzer': the string name of the analyzer used, or None if no analysis was performed or an
+    error occurred before or during analysis.
+  - 'language_family': the string language family used when compiling (See 
+    'Programming Languages' subsection for list of currently available language families by 
+    default), or None if no compilation was performed or an error occurred before or during 
     compilation
-  - 'compiler': the string name of the compiler used when compiling, or None if no compilation was performed or an error
-    occurred before or during compilation
-  - 'compiler_version': version string of the compiler used when compiling, or None if no compilation was performed or 
-    an error occurred before or during compilation
-  - 'architecture': the string architecture name compiled to when compiling, or None if no compilation was performed or 
-    an error occurred before or during compilation
-  - 'flags': list of string flags passed to compiler when compiling, or None if no compilation was performed or an error
-    occurred before or during compilation
-  - 'binaries': list of all output binaries associated with this cap file. Each binary is a bytes() object containing the
-    full bytes of the compiled binary. For languages like c/c++, this list will likely have only one element (the compiled
-    binary), but for others like Java, this list may contain multiple elements (one for each classfile produced).
+  - 'compiler_family': the string compiler family used when compiling. These will be the main 
+    names of compiler families in the container_info.yaml file. Will be None if no compilation
+    was performed or an error occurred before or during compilation
+  - 'compiler': the string name of the compiler used when compiling, or None if no compilation 
+    was performed or an error occurred before or during compilation
+  - 'compiler_version': version string of the compiler used when compiling, or None if no 
+    compilation was performed or an error occurred before or during compilation
+  - 'architecture': the string architecture name compiled to when compiling, or None if no 
+    compilation was performed or an error occurred before or during compilation
+  - 'flags': list of string flags passed to compiler when compiling, or None if no compilation 
+    was performed or an error occurred before or during compilation
+  - 'binaries': list of all output binaries associated with this cap file. Each binary is a 
+    bytes() object containing the full bytes of the compiled binary. For languages like c/c++, 
+    this list will likely have only one element (the compiled binary), but for others like Java,
+    this list may contain multiple elements (one for each classfile produced).
   - 'binary_md5_hashes': list of md5 hashes of output binaries
   - 'total_size_mb': total size of all binaries in MB
   - 'analyzer_output': the string text output from the analyzer
-  - 'error' (List[Optional[str]]): string error message for any error occurr during CAP. Will be None if no error
-    occurred. Specifically, this is an error from within python, not an error from compile/analysis stderr
-  - 'compile_stdout' (List[Optional[str]]): string output from stdout during compilation process, or None if no 
+  - 'error' (List[Optional[str]]): string error message for any error occurr during CAP. Will 
+    be None if no error occurred. Specifically, this is an error from within python, not an 
+    error from compile/analysis stderr
+  - 'compile_stdout' (List[Optional[str]]): string output from stdout during compilation 
+    process, or None if no compilation was performed or an error occurred before or during 
+    compilation
+  - 'compile_stderr' (List[Optional[str]]): string output from stderr during compilation 
+    process, or None if no compilation was performed or an error occurred before or during 
+    compilation
+  - 'analyzer_stdout' (List[Optional[str]]): string output from stdout during analyzer process, 
+    or None if no analysis was performed or an error occurred before or during analysis
+  - 'analyzer_stderr' (List[Optional[str]]): string output from stderr during analyzer process, 
+    or None if no analysis was performed or an error occurred before or during analysis
+  - 'compile_time' (List[Optional[float]]): time in seconds required to compile, or None if no 
     compilation was performed or an error occurred before or during compilation
-  - 'compile_stderr' (List[Optional[str]]): string output from stderr during compilation process, or None if no 
-    compilation was performed or an error occurred before or during compilation
-  - 'analyzer_stdout' (List[Optional[str]]): string output from stdout during analyzer process, or None if no 
+  - 'analysis_time' (List[Optional[float]]): time in seconds required to analyze, or None if no 
     analysis was performed or an error occurred before or during analysis
-  - 'analyzer_stderr' (List[Optional[str]]): string output from stderr during analyzer process, or None if no 
-    analysis was performed or an error occurred before or during analysis
-  - 'compile_time' (List[Optional[float]]): time in seconds required to compile, or None if no compilation was 
-    performed or an error occurred before or during compilation
-  - 'analysis_time' (List[Optional[float]]): time in seconds required to analyze, or None if no analysis was 
-    performed or an error occurred before or during analysis
-  - 'cfg_[norm_name]_[idx]': bytes() containing pickled BinCFG CFG() object normalized with the normalizer '[norm_name]'.
-    The '[idx]' is just an integer index in the list of normalizers being used in case multiple normalizers are passed
-    which have the same name. One column will exist per normalizer used iff the 'cfg' string is present in the
+  - 'cfg_[norm_name]_[idx]': bytes() containing pickled BinCFG CFG() object normalized with the
+    normalizer '[norm_name]'. The '[idx]' is just an integer index in the list of normalizers 
+    being used in case multiple normalizers are passed which have the same name. One column will
+    exist per normalizer used iff the 'cfg' string is present in the `postprocessing` 
+    EXECUTION_INFO list
+  - 'memcfg_[norm_name]_[idx]': bytes() containing pickled BinCFG MemCFG() object normalized
+    with the normalizer '[norm_name]'. The '[idx]' is just an integer index in the list of 
+    normalizers being used in case multiple normalizers are passed which have the same name. One
+    column will exist per normalizer used iff the 'memcfg' string is present in the 
     `postprocessing` EXECUTION_INFO list
-  - 'memcfg_[norm_name]_[idx]': bytes() containing pickled BinCFG MemCFG() object normalized with the normalizer '[norm_name]'.
-    The '[idx]' is just an integer index in the list of normalizers being used in case multiple normalizers are passed
-    which have the same name. One column will exist per normalizer used iff the 'memcfg' string is present in the
-    `postprocessing` EXECUTION_INFO list
-  - 'stats_[norm_name]_[idx]': bytes() containing pickled BinCFG CFG().get_compressed_stats() numpy array normalized with
-    the normalizer '[norm_name]'. The '[idx]' is just an integer index in the list of normalizers being used in case multiple
-    normalizers are passed which have the same name. One column will exist per normalizer used iff the 'stats' string is
+  - 'stats_[norm_name]_[idx]': bytes() containing pickled BinCFG CFG().get_compressed_stats() 
+    numpy array normalized with the normalizer '[norm_name]'. The '[idx]' is just an integer 
+    index in the list of normalizers being used in case multiple normalizers are passed which 
+    have the same name. One column will exist per normalizer used iff the 'stats' string is
     present in the `postprocessing` EXECUTION_INFO list
-  - 'meta_[metadata_key]': metadata associated with the CAP-ed datapoint. Each key that was in the metadata will have
-    'meta_' prepended to it and its value will be stored in its associated column
+  - 'meta_[metadata_key]': metadata associated with the CAP-ed datapoint. Each key that was in 
+    the metadata will have 'meta_' prepended to it and its value will be stored in its 
+    associated column
   
 Any of these columns can be dropped and will not appear in the output files if their name appears in the DROP_COLUMNS
 parameter in the execution info.
