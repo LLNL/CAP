@@ -44,6 +44,7 @@ FILE_EXTENSIONS_TO_LANGUAGE = {
     'c': 'c',
     'cpp': 'c++',
     'java': 'java',
+    'cs': 'c#',
 }
 LANGUAGE_FILE_EXTENSIONS = {v: k for k, v in FILE_EXTENSIONS_TO_LANGUAGE.items()}
 
@@ -53,14 +54,12 @@ BINARY_FILE_EXTENSIONS = {
     'macho': '',
     'pe': '',
     'java': '.class',
+    'c#': '.dll',
 }
 
 # Default values for execution info
 DEFAULT_EXEC_INFO_VALS = {'postprocessing': [], 'drop_columns': [], 'normalizers': [], 'analyzers': [], 
                           'compile_methods': [], 'container_platform': None, 'fail_on_error': False, 'await_load': False}
-
-
-_DEBUG_NUM_FILES = None
 
 
 def _main_misc(paths, exec_info, n_jobs, task_id, threads, task, progress=False):
@@ -120,9 +119,9 @@ def _main_misc(paths, exec_info, n_jobs, task_id, threads, task, progress=False)
     caps = [(k, v, cm, a) for k, l in found.items() for cm in compile_methods for a in analyzer_methods for v in l]
 
     # Use a smaller number of files if in debug mode
-    if _DEBUG_NUM_FILES is not None:
-        LOGGER.info("RUNNING IN DEBUG MODE, ONLY USING %d FOLDERS/FILES!" % _DEBUG_NUM_FILES)
-        caps = caps[:_DEBUG_NUM_FILES]
+    if DEBUG_NUM_FILES is not None:
+        LOGGER.info("RUNNING IN DEBUG MODE, ONLY USING %d FOLDERS/FILES!" % DEBUG_NUM_FILES)
+        caps = caps[:DEBUG_NUM_FILES]
 
     # Remove the tabular datasets, and add on the elements of tabular datasets one at a time. Done this way so we can
     #   do the _DEBUG_NUM_FILES based on the number of files/folders, not individual elements within them
@@ -379,8 +378,8 @@ def _load_tabular(tabular_path, columns=None, tab_type=None):
 def _rec_search_misc_folder(found, input_path, recursive, progress=True):
     """Recursively (or non-recursively) checks files/folders in the given directory and stores them into passed found dict"""
     rec_files = [os.path.join(input_path, f) for f in os.listdir(input_path)]
-    if _DEBUG_NUM_FILES is not None:
-        rec_files = rec_files[:_DEBUG_NUM_FILES]
+    if DEBUG_NUM_FILES is not None:
+        rec_files = rec_files[:DEBUG_NUM_FILES]
     
     for f in progressbar(rec_files, progress=progress):
         task = auto_detect_cap_task(f)
@@ -422,9 +421,9 @@ def _main_partitioned(paths, exec_info, n_jobs, task_id, threads, progress=False
     LOGGER.info("Loaded partitioned info with a max of %d possible source codes to compile" % len(part_info))
 
     # Use a smaller number of files if in debug mode
-    if _DEBUG_NUM_FILES is not None:
-        LOGGER.info("RUNNING IN DEBUG MODE, ONLY USING %d FILES!" % _DEBUG_NUM_FILES)
-        part_info = part_info.iloc[:_DEBUG_NUM_FILES]
+    if DEBUG_NUM_FILES is not None:
+        LOGGER.info("RUNNING IN DEBUG MODE, ONLY USING %d FILES!" % DEBUG_NUM_FILES)
+        part_info = part_info.iloc[:DEBUG_NUM_FILES]
 
     # Get all of the ids's that we will be processing in this job
     if n_jobs > 1:
@@ -605,9 +604,10 @@ def _mp_call(paths, exec_info, n_jobs, task_id, task, threads, progress):
 
         # Move the temp directory one down so we can do multiple compiles of the same thing
         new_tempdir = os.path.join(paths['temp'], 'temp-%s-%d' % (exec_info['execution_uid'], task_id))
-        if os.path.exists(new_tempdir):
-            shutil.rmtree(new_tempdir)
-        os.makedirs(new_tempdir)
+        for td in [new_tempdir]:
+            if os.path.exists(td):
+                shutil.rmtree(td)
+            os.makedirs(td)
         paths['temp'] = new_tempdir
 
         exec_info.update({'task': task, 'task_id': task_id, 'n_jobs': n_jobs})
@@ -620,9 +620,10 @@ def _mp_call(paths, exec_info, n_jobs, task_id, task, threads, progress):
         else:
             raise ValueError("Unknown CAP task: %s" % repr(task))
 
-    # Remove the new_tempdir
-    if new_tempdir is not None and os.path.exists(new_tempdir):
-        shutil.rmtree(new_tempdir)
+    # Remove the new_tempdir and temp_homedir
+    for rm_dir in [new_tempdir]:
+        if rm_dir is not None and os.path.exists(rm_dir):
+            shutil.rmtree(rm_dir)
 
 
 _AWAIT_LOAD_FILE_PATH = None
@@ -951,6 +952,8 @@ if __name__ == '__main__':
         sys.path.append(os.path.dirname(exec_info_path))
         ei_base = os.path.basename(exec_info_path)
         ei = importlib.import_module(ei_base.rpartition('.')[0] if '.' in ei_base else ei_base)
+
+        DEBUG_NUM_FILES = ei.DEBUG_NUM_FILES if hasattr(ei, 'DEBUG_NUM_FILES') else None
 
         exec_info = {k: getattr(ei, k.upper()) for k in DEFAULT_EXEC_INFO_VALS if hasattr(ei, k.upper())}
         exec_info['execution_uid'] = ei.EXECUTION_UID

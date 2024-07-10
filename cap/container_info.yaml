@@ -214,6 +214,30 @@ JavaC:
               flags: {}
 
 
+Dotnet:
+  type: 'compiler'
+  container: 'dotnet-{v0}'
+  compilers:
+    dotnet:
+      supported_languages: 'c#'
+
+      # We need at least one flag to make sure the CompilerMethod doesn't prune this branch. This will also turn off
+      #   the logo/copyright message printed during each compile, saving some space
+      # Also have to put a bunch of other flags that force rebuilding and remove any cached things
+      force_flags:
+        -nologo: False
+        #-no-restore: False
+        #-no-incremental: False
+        #-disable-build-servers: False
+
+      versions:
+        v8.0:
+          architectures:
+            cil:
+              binary_name: '/app/dotnet-build'
+              flags: {}
+
+
 # The Rose analyzer
 Rose:
   type: 'analyzer'

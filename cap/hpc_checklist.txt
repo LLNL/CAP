@@ -2,7 +2,7 @@ Checklist before running large jobs:
 
 1. You have copied the data (partitioned if using) all correct
 2. Clear out any unneeded logs/files
-3. Edit main.py
+3. Edit execution_info.py
     a. Change EXECUTION_UID
     b. Select which data to keep in KEEP_DATA, along with NORMALIZERS and ANALYZERS to use
     c. Make sure _DEBUG_NUM_FILES is off (unless using)

@@ -39,12 +39,10 @@ MOUNTING_DIR = '/mounted'
 #       * 'command': the command being executed
 #     
 #     These should mount an outside directory to '/mounted' within the container
-#
-# Detecting the container platform will be executed in the list's order, stopping after the first successful detection
 CONTAINER_PLATFORMS = {
     'singularity':  {'detection_command': 'singularity --version', 
-                     'bind_command': '--bind {host_path}:{container_path}',
-                     'execution_command': 'singularity exec --no-home {dir_bind} {extra_args} {container} /bin/bash -c "{command}"'}, 
+                     'bind_command': '--bind {host_path}:{container_path} --containall',
+                     'execution_command': 'singularity exec {dir_bind} {extra_args} {container} /bin/bash -c "{command}"'}, 
     'docker':       {'detection_command': 'docker --version', 
                      'bind_command': '-v {host_path}:{container_path}',
                      'execution_command': 'docker run --rm {dir_bind} {extra_args} {container} /bin/bash -c "{command}"'},

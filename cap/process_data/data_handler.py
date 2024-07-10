@@ -340,8 +340,9 @@ class CAPDataHandler():
 
         # Delete files/folders if needed
         if empty_temp:
-            shutil.rmtree(self.paths['temp'])
-            os.mkdir(self.paths['temp'])
+            for dir_key in ['temp']:
+                shutil.rmtree(self.paths[dir_key])
+                os.mkdir(self.paths[dir_key])
         
         # Check if we are passed memory limit and should save
         df_usage = self.df.memory_usage(deep=True).sum() / 2 ** 30

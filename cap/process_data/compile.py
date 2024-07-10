@@ -80,6 +80,21 @@ def compile_java_file(paths, ci, file_path, container_platform):
     return ret, std_oe
 
 
+def compile_dotnet_file(paths, ci, file_path, container_platform):
+    """Runs a single compilation for a single dotnet file"""
+    binary_fp_name = os.path.basename(file_path).rpartition('.')[0]
+    output_selector = "/mounted/%s.dll" % binary_fp_name
+    output_path = os.path.join(paths['temp'], '%s.dll' % binary_fp_name)
+    input_path = '/mounted/%s' % os.path.basename(file_path)
+
+    compiler_flags = _escape_string(' '.join(ci['flags']))
+
+    command = ' '.join([ci['binary_name'], input_path, output_selector, compiler_flags])
+    std_oe = _exec_compile_subprocess(paths, command, ci, container_platform)
+    
+    return output_path, std_oe
+
+
 def compile_c_cpp_file(paths, ci, file_path, container_platform):
     """Runs a single compilation for a single C/C++ file"""
     binary_fp_name = os.path.basename(file_path).rpartition('.')[0]
@@ -130,6 +145,8 @@ def compile_single_file(paths, ci, file_path, container_platform):
         ret, (stdout, stderr) = compile_c_cpp_file(paths, ci, file_path, container_platform)
     elif ci['language'] in ['java']:
         ret, (stdout, stderr) = compile_java_file(paths, ci, file_path, container_platform)
+    elif ci['language'] in ['c#']:
+        ret, (stdout, stderr) = compile_dotnet_file(paths, ci, file_path, container_platform)
     else:
         raise NotImplementedError("Unknown language_family: %s" % repr(ci['language']))
     

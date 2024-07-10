@@ -25,6 +25,8 @@ def get_language_family(language):
         return 'c'
     elif 'java' in language.lower():
         return 'java'
+    elif 'c#' in language.lower():
+        return 'c#'
     else:
         raise ValueError("Could not parse language: '%s'" % language)
 

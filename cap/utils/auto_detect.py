@@ -34,7 +34,7 @@ _KNOWN_TABULAR_MAGIC_BYTES = [
 # Magics will be checked in the order they appear here
 _KNOWN_BINARY_MAGIC_BYTES = [
     ('elf', ['\x7FELF']),
-    ('pe', [b'MZ']),
+    ('pe', [b'MZ']),  # Also handles dll's
     ('macho', [b'\xFE\xED\xFA\xCE', b'\xFE\xED\xFA\xCF', b'\xCE\xFA\xED\xFE', b'\xCF\xFA\xED\xFE']),
     ('java', [b'\xCA\xFE\xBA\xBE']),  # Technically, this may conflict with Apple Fat Binary, but idk if anyone uses that...
 ]
@@ -47,10 +47,14 @@ _KNOWN_SOURCE_FILE_EXTENSIONS = [
     ('c', ['.c']),
     ('c++', ['.C', '.cc', '.cpp', '.CPP', '.c++', '.C++', '.cp', '.cxx']),
     ('java', ['.java']),
+    ('cs', ['.cs']),
 ]
 
 # A regular expression that matches one or more contiguous whitespace characters, non-capturing
 _SPACING_RE = r'(?:[{w}]+)'.format(w=string.whitespace)
+
+# A valid csharp name identifier
+_CS_NAME = r'[a-zA-Z_][a-zA-Z_0-9]+'
 
 # Substrings we expect to find within certain source code files, and (hopefully) nowhere else
 # List of tuples of (name, reg_list), where reg_list is a list of regular expressions to search for, with the re.DOTALL flag on
@@ -59,6 +63,11 @@ _KNOWN_SOURCE_SUBSTRINGS = [
     # Any (executable) java program should have a valid main entrypoint something like "public static void main(String[]..."
     ('java', [r'public{sp}static{sp}void{sp}main{sp}?\({sp}?String{sp}?\[{sp}?\]'.format(sp=_SPACING_RE)]),
     
+    # I think any c# program should look like:
+    # namespace [NAME] {
+    #   ... class [NAME] {
+    #    ...   static ... Main (...
+    ('c#', [r'namespace{sp}{cn}{sp}?\{{[^{{]*class{sp}{cn}{sp}?\{{[^{{]*Main{sp}?\('.format(sp=_SPACING_RE, cn=_CS_NAME)]),
 ]
 
 

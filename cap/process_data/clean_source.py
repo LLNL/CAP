@@ -34,6 +34,9 @@ def clean_source(source, language_family):
     elif language_family in ['java']:
         return JAVA_CLASSNAME_REGEX.sub(lambda match: JAVA_SUPPRESS_WARNING_STRING + "\n" + match.group(0), 
                                         JAVA_REPLACE_SUPPRESS_WARNINGS.sub('', source), count=1)
+    elif language_family in ['c#']:
+        # Should do a better check here to see if there's anything bad that can happen
+        return source
     else:
         raise NotImplementedError(language_family)
 

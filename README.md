@@ -693,11 +693,12 @@ Information on how to extend this code to new languages, analyzers, etc.
 Adding new language:
   - Build singularity container for language compiler(s)
   - Add container info to container_info file
-  - And cleaning method to clean_source()
+  - Add cleaning method to clean_source()
   - Add parser for language family to utils.misc.get_language_family() file
   - Add file format detections to misc
   - Add new compile_LANG_file() method to cap.process_data.compile.py file. See header for methods specs.
   - Add lang to cap.process_data.compile.compile_single_file() method
+  - Add info to CAP.py in FILE_EXTENSIONS_TO_LANGUAGE and BINARY_FILE_EXTENSIONS
   - Update README.md and Docstrings :)
 Adding new analyzer:
 Adding new container platform:
