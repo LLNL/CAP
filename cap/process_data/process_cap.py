@@ -112,9 +112,10 @@ def cap_single_file(paths, cap_file_path, cap_id, compile_methods, analyzer_meth
     compile_methods = [compile_methods] if isinstance(compile_methods, dict) or compile_methods is None else compile_methods
 
     num_ret = len(analyzer_methods) * len(compile_methods)
-    ret = {k: [None] * num_ret for k in ['analyzer', 'binary_file_paths', 'analyzer_output_path', 'error', 'compile_stdout',
-                             'compile_stderr', 'analyzer_stdout', 'analyzer_stderr', 'compile_time', 'analysis_time',
-                             'compile_info']}
+    ret = {k: [''] * num_ret for k in ['analyzer', 'binary_file_paths', 'analyzer_output_path', 'error', 'compile_stdout',
+                             'compile_stderr', 'analyzer_stdout', 'analyzer_stderr']}
+    ret.update({k: [-1.0] * num_ret for k in ['compile_time', 'analysis_time']})
+    ret.update({k: [None] * num_ret for k in ['compile_info']})
     ret.update({'id': [cap_id] * num_ret, 'metadata': [metadata] * num_ret})
 
     def _set_ret_cm_info(key, cmi, val):

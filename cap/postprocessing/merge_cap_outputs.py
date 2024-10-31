@@ -2,37 +2,68 @@
 Used to merge the CAP outputs together
 """
 
-import pandas as pd
 import os
 import pickle
-import re
+import numpy as np
 import argparse
+import pyarrow as pa
+import pyarrow.parquet as pq
 from bincfg import progressbar
 
 
-def merge_outputs(output_path, chunksize):
-    """Combines output parquet files"""
-    files = [os.path.join(output_path, f) for f in os.listdir(output_path) if f.endswith(('.parquet', '.pq')) and re.fullmatch(r'merged-[0-9]+.parquet', f) is None]
+def merge_outputs(output_path, num_chunks, token_path):
+    """Combines output parquet files. Assumes all parquet files in output path are used"""
+    files = [os.path.join(output_path, f) for f in os.listdir(output_path) if f.endswith(('.parquet', '.pq'))]
+    chunks = np.array_split(np.array(files, dtype=object), num_chunks)
 
-    curr_dfs = []
-    merge_idx = 0
-    for f in progressbar(files):
-        try:
-            curr_dfs.append(pd.read_parquet(f))
-        except Exception as e:
-            print("Failed on file, ignoring: %s" % repr(f))
-            continue
+    try:
+        import duckdb
+        _merge_duckdb(output_path, chunks, token_path)
+    except ImportError:
+        import pandas
+        print("WARNING: could not find package: `duckdb`. Using `pandas` instead. This will be much slower and use a lot more memory!")
+        _merge_pandas(output_path, chunks, token_path)
+    
 
-        if len(curr_dfs) >= chunksize:
-            num_in_chunk = len(curr_dfs)
-            curr_dfs = pd.concat(curr_dfs)
+def _merge_duckdb(output_path, chunks, token_path):
+    import duckdb
+    print("merging with duckdb")
 
-            print("Current dataframe chunk consists of %d files and takes up %.4f GB of memory" 
-                % (num_in_chunk, curr_dfs.memory_usage(deep=True).sum() / 2 ** 30))
-            curr_dfs.to_parquet(os.path.join(output_path, "merged-%d.parquet" % merge_idx), index=False, row_group_size=200)
+    with open(token_path, 'rb') as f:
+        tokens = pickle.load(f)
+    
+    for i in range(len(chunks)):
+        outfile = _get_filepath(output_path, i)
+        duckdb.sql("COPY (SELECT * FROM read_parquet(%s)) TO '%s' (FORMAT 'parquet')" % (repr(list(chunks[i])), outfile))
+        _write_tokens_and_INDEX(outfile, tokens)
 
-            curr_dfs = []
-            merge_idx += 1
+
+def _merge_pandas(output_path, chunks, token_path):
+    import pandas as pd
+    print("merging with pandas")
+
+    with open(token_path, 'rb') as f:
+        tokens = pickle.load(f)
+
+    for i in range(len(chunks)):
+        outfile = _get_filepath(output_path, i)
+        pd.concat([pd.read_parquet(f) for f in chunks[i]], axis=0).to_parquet(outfile, index=False)
+        _write_tokens_and_INDEX(outfile, tokens)
+
+
+def _write_tokens_and_INDEX(outfile, tokens):
+    """Loads in file again with pyarrow, inserts tokens and INDEX column, writes back to file"""
+    tempfile = outfile + '-temp_.parquet'
+    table = pq.read_table(outfile)
+    table = table.append_column('INDEX', pa.array(np.arange(len(table)))).replace_schema_metadata({b'tokens': pickle.dumps(tokens)})
+    if '__index_level_0__' in table.schema.names:
+        table = table.drop(['__index_level_0__'])
+    pq.write_table(table, tempfile)
+    os.rename(tempfile, outfile)
+
+
+def _get_filepath(output_path, idx):
+    return os.path.join(output_path, 'merged-%d.parquet' % idx)
 
 
 def merge_logs(cap_path, log_name, delete):
@@ -63,20 +94,20 @@ def merge_logs(cap_path, log_name, delete):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Combine cap outputs')
-    parser.add_argument('path', action='store', help='The path to the cap output')
-    parser.add_argument('chunksize', action='store', type=float, help='The number of files to merge into a single chunk')
-    parser.add_argument('--task', action='store', default='output', help='The merging task to do. Can be \'logs\' or \'output\'. Defaults to \'output\'')
-    
+    parser.add_argument('path', action='store', help='The path to the cap output. Assumes all parquet files in this directory are used.')
+    parser.add_argument('num_chunks', action='store', type=float, help='The total number of chunks (output files) to merge into')
+    parser.add_argument('--token_path', action='store', default=None, help='The path to atomic token dictionary. Only used for \'output\' task.')
+    parser.add_argument('--task', action='store', default='output', help='The merging task to do. Can be \'logs\' or \'output\'. Defaults to \'output\'')    
 
     args = parser.parse_args()
 
-    chunksize = args.chunksize if args.chunksize > 0 else 1000000000000000
+    num_chunks = args.num_chunks if args.num_chunks > 0 else 1
 
     if args.task.lower() in ['logs', 'log']:
         print("Running task:", args.task.lower())
         merge_logs(args.path, 'logs-merged.log')
     elif args.task.lower() in ['outputs', 'output']:
         print("Running task:", args.task.lower())
-        merge_outputs(args.path, chunksize)
+        merge_outputs(args.path, num_chunks, args.token_path)
     else:
         raise ValueError("Unknown merging task: %s" % repr(args.task))

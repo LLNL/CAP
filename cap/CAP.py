@@ -18,7 +18,6 @@ import shutil
 import traceback
 import importlib
 import copy
-import atomicwrites  # To make sure we have it here
 from pprint import pformat
 from parsing.container_info import load_compiler_info, load_analyzer_info, get_analyzer_methods, get_container_platform
 from compiler_selection.compiler_selector import CompilerSelector
@@ -121,6 +120,9 @@ def _main_misc(paths, exec_info, n_jobs, task_id, threads, task, progress=False)
     # Use a smaller number of files if in debug mode
     if DEBUG_NUM_FILES is not None:
         LOGGER.info("RUNNING IN DEBUG MODE, ONLY USING %d FOLDERS/FILES!" % DEBUG_NUM_FILES)
+        LOGGER.info("RANDOMLY SHUFFLING FILES!")
+        rng = np.random.default_rng(1234567)
+        rng.shuffle(caps)
         caps = caps[:DEBUG_NUM_FILES]
 
     # Remove the tabular datasets, and add on the elements of tabular datasets one at a time. Done this way so we can
@@ -422,8 +424,10 @@ def _main_partitioned(paths, exec_info, n_jobs, task_id, threads, progress=False
 
     # Use a smaller number of files if in debug mode
     if DEBUG_NUM_FILES is not None:
-        LOGGER.info("RUNNING IN DEBUG MODE, ONLY USING %d FILES!" % DEBUG_NUM_FILES)
-        part_info = part_info.iloc[:DEBUG_NUM_FILES]
+        LOGGER.info("RUNNING IN DEBUG MODE, ONLY USING %d PARTITIONED SOURCE CODES!" % DEBUG_NUM_FILES)
+        LOGGER.info("RANDOMLY SHUFFLING FILES!")
+        part_info = part_info.sample(n=DEBUG_NUM_FILES)
+        #part_info = part_info.iloc[:DEBUG_NUM_FILES]
 
     # Get all of the ids's that we will be processing in this job
     if n_jobs > 1:
@@ -508,7 +512,7 @@ def _main_partitioned(paths, exec_info, n_jobs, task_id, threads, progress=False
 
                     data_handler.add_data(data_dict, empty_temp=True)
 
-                    if all(e is None for e in data_dict['error']):
+                    if all(e in [None, ''] for e in data_dict['error']):
                         part_info.loc[part_id, 'compiled'] = True
                 
                 # Delete the raw data file if it exists
@@ -552,8 +556,6 @@ def init_cap_logging(exec_uid, log_path, task_id, max_task_id, task, file_name=N
     if LOGGER is None:
         LOGGER = MPLogger(task_id)
         init_logging(log_path, task_id, exec_uid=str(exec_uid) + '-' + task, file_name=file_name, with_stdout=with_stdout, max_task_id=max_task_id)
-        import bincfg
-        bincfg.utils.misc_utils.set_logger(LOGGER)
     return LOGGER
 
 
@@ -811,14 +813,14 @@ def cap_main(paths, exec_info, task, n_jobs=1, threads=1, task_id=0, hpc_copy_co
     # Make the output, logs, temp, and atomic_data dirs if they don't already exist
     for k in ['atomic_data', 'logs', 'output', 'temp']:
         if not os.path.exists(paths[k]):
-            os.makedirs(paths[k])
+            os.makedirs(paths[k], exist_ok=True)
         elif not os.path.isdir(paths[k]):
             raise ValueError("Path %s exists but is not a directory" % repr(paths[k]))
 
     # Copy files over if using HPC
     if hpc_copy_containers:
         new_containers_dir = os.path.join(paths['temp'], 'containers')
-        shutil.copytree(paths['containers'], new_containers_dir)
+        shutil.copytree(paths['containers'], new_containers_dir, dirs_exist_ok=True)
         paths['containers'] = new_containers_dir
     
     # Check for a 'specific_tasks'

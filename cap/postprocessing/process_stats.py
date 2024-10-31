@@ -19,7 +19,6 @@ import sys
 import pandas as pd
 import numpy as np
 import multiprocessing
-import numba
 from bincfg import progressbar
 
 
@@ -205,6 +204,9 @@ def select_subset(input_dir, output_dir, selection_method, selection_name, size,
             if keep_locs is not None:
                 stats = stats[keep_locs]
 
+            if not _NUMBA_JITTED:
+                print("Warning: `numba` package was not installed. Distance selection will be slow! Consider installing "
+                      "`numba` to drastically improve speed: 'pip install numba'")
             all_ids.append(_distant_select(sub_ids, stats, size))
         
         else:
@@ -234,7 +236,6 @@ def prefilter_ok_verdict(sub_ids, sub_info_path):
     return _DF_CACHE[_DF_CACHE.submission_id.isin(sub_ids) & (_DF_CACHE.verdict == 'OK')].submission_id.to_numpy()
 
 
-@numba.njit()
 def _distant_select(sub_ids, stats, size):
     """Selects submissions that maximize the minimum distance between them
     
@@ -301,6 +302,15 @@ def _distant_select(sub_ids, stats, size):
         selected_ids[point_idx] = sub_ids[curr_idx]
    
     return selected_ids
+
+
+# Attempt to JIT with numba if it is installed
+try:
+    import numba
+    _distant_select = numba.njit()(_distant_select)
+    _NUMBA_JITTED = True
+except ImportError:
+    _NUMBA_JITTED = False
 
 
 def merge_subsets(input_dir, delete=False):

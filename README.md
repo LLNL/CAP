@@ -100,7 +100,7 @@ There are a couple of configurations needed before running:
     * container_info - YAML file containing information on containers being used including those
       for compilers and analyzers. By default, CAP will use the "container_info.yaml" file 
       shipped with this code, which should reside right next to 'CAP.py'. It should contain 
-      everything needed for GCC and JavaC compilers and Rose analyzer. Information on how this 
+      everything needed for GCC, JavaC, and .NET compilers and Rose analyzer. Information on how this 
       file is structure and how new containers can be added can be found in the 'Extend Me'
       section
     
@@ -341,6 +341,7 @@ The following programming languages can be CAP-ed (assuming the relevant contain
 
   - 'c', 'c++': C and C++ programming languages
   - 'java': Java programming language
+  - 'c#': C# language
 
 These can be automatically detected as source code files as well as handled during compilation and analysis.
 
@@ -701,7 +702,9 @@ Adding new language:
   - Add info to CAP.py in FILE_EXTENSIONS_TO_LANGUAGE and BINARY_FILE_EXTENSIONS
   - Update README.md and Docstrings :)
 Adding new analyzer:
+  - TODO
 Adding new container platform:
+  - TODO
 
 ### Container Info
 
